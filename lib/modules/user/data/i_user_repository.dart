@@ -1,0 +1,7 @@
+import '../../../entities/user.dart';
+
+abstract interface class IUserRepository {
+
+  Future<User> createUser(User user);
+
+}
