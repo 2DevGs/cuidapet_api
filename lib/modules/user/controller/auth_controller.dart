@@ -33,22 +33,28 @@ class AuthController {
   Future<Response> login(Request request) async{
 
     try {
+      
       final loginViewModel = LoginViewModel(await request.readAsString());
       User user;
       
-      if(!loginViewModel.socialLogin) {
+      if (!loginViewModel.socialLogin) {
         user = await userService.loginWithEmailPassword(
-          loginViewModel.login, loginViewModel.password, loginViewModel.supplierUser
+            loginViewModel.login, loginViewModel.password, loginViewModel.supplierUser
         );
-      } else {
+      } else { 
         // Social Login (Facebook, google, apple, etc...)
-        user = User();
+        user = await userService.loginWithSocial(
+          loginViewModel.login,
+          loginViewModel.avatar,
+          loginViewModel.socialType,
+          loginViewModel.socialKey,
+        );
+        // user = User();
       }
-      
-      return Response.ok(jsonEncode({
-        'access_token': JwtHelper.generateJWT(user.id!, user.supplierId),
-      }));
-    } on UserNotFoundException catch (e) {
+
+      return Response.ok(jsonEncode(
+        {'access_token': JwtHelper.generateJWT(user.id!, user.supplierId),}));
+    } on UserNotFoundException {
       return Response.forbidden(jsonEncode({'message': 'Usuario ou senha invalidos'}));
     } catch(e, s) {
       log.error('Erro ao realizar login', e, s);
